@@ -58,7 +58,7 @@ begin
              CONV3 : if(cnt_col == 4) state <= CONV4; else state <= CONV3;
              CONV4 : if(cnt_col == 4) state <= CONV5; else state <= CONV4;
              CONV5 : if (cnt_col == 4) state <= CONV1;else state <= CONV5;
-             DONE : state <= IDLE;
+             DONE : if(addr_ram == 4703) state <= IDLE; else state <= DONE;
              default : state <= IDLE;
              endcase
 end
@@ -154,6 +154,7 @@ begin
     else
         case(state)
             IDLE : weights_ctrl <= 16'd0;
+            DONE : weights_ctrl <= 16'd0;
             default :if(cnt_weights_ctrl == 19599) weights_ctrl <= weights_ctrl + 25; else weights_ctrl <= weights_ctrl;
             endcase
 end 
@@ -227,13 +228,11 @@ begin
         addr_b <= 3'd0;
     else
         begin
-        if(cnt_ram < 117659)
         case(state)
             IDLE : addr_b <= 3'd0;
-            default :if(cnt_weights_ctrl == 19599) addr_b <= addr_b + 1'd1; else addr_b <= addr_b;
+            DONE : addr_b <= 3'd0;
+            default :if(cnt_weights_ctrl == 19599 && weights_ctrl != 125) addr_b <= addr_b + 1'd1; else addr_b <= addr_b;
             endcase
-        else
-            addr_b <= addr_b;
         end
 end 
 
@@ -254,8 +253,8 @@ begin
     addr_ram <= 0;
     else
     case(state)
-    CONV2 : if(cnt_ram_ctrl == 24 && addr_ram != 4703) addr_ram <= addr_ram + 1'd1; else if(addr_ram == 4703 && cnt_ram_ctrl == 24) addr_ram <= 0;  else addr_ram <= addr_ram;
-    DONE : addr_ram <= 0;
+    CONV2 : if(cnt_ram_ctrl == 24 && cnt_ram >= 56 && addr_ram != 4703) addr_ram <= addr_ram + 1'd1; else if(addr_ram == 4703 && cnt_ram_ctrl == 24) addr_ram <= 0;  else addr_ram <= addr_ram;
+    DONE : addr_ram <= addr_ram + 1'd1;
     default addr_ram <= addr_ram;
     endcase
 end
@@ -270,5 +269,6 @@ begin
             default : wea <= 1'd0;
             endcase
 end
+
 
 endmodule
